@@ -129,6 +129,9 @@ client.on('messageCreate', async (message) => {
 
 // every 30 minutes, delete all messages in the channel and send new embeds
 setInterval(async () => {
+  let ecoData = await MyecoWatt.getEcoWattData();
+  let embeds = genEmbed(ecoData); 
+
   channelList.channels.forEach(channel => {
     const channelid = channel.id;
     const channelName = channel.name;
@@ -139,12 +142,11 @@ setInterval(async () => {
       channelObj.messages.fetch().then(messages => {
         const filteredMessages = messages.filter(message => message.createdTimestamp > (Date.now() - 1209600000));
         channelObj.bulkDelete(filteredMessages);
-        MyecoWatt.getEcoWattData().then(data => {
-          const embeds = genEmbed(data);
-          embeds.forEach(embed => {
+        channelObj.send({embeds: embeds});
+/*           embeds.forEach(embed => {
             channelObj.send({embeds: [embed]});
-          });
-        });
+          }); */
+        console.log(`Les données ont été envoyées dans le channel ${channelName} du serveur ${serverName}`);
       });
     } else {
       console.log(`Le channel ${channelName} du serveur ${serverName} n'existe plus`);
