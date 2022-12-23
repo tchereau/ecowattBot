@@ -9,7 +9,7 @@
     "start": "node index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "tchereau",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^14.7.1",
