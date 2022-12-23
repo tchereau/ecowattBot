@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "keywords": [],
+  "keywords": ["eco","watt", "rte", "bot", "discord", "écowatt"],
   "author": "tchereau",
   "license": "ISC",
   "dependencies": {
