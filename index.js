@@ -147,11 +147,6 @@ client.on('messageCreate', async (message) => {
 setInterval(async () => {
   let ecoData = await MyecoWatt.getEcoWattData();
   let embeds = genEmbed(ecoData); 
-  if(!embeds){
-    console.log("Error, no embeds generated");
-    message.channel.send(`Aucune donnée disponible pour le moment ou limite de requêtes atteinte`);
-    return;
-  }
 
   channelList.channels.forEach(channel => {
     const channelid = channel.id;
@@ -161,14 +156,24 @@ setInterval(async () => {
     const channelObj = client.channels.cache.get(channelid);
     if (channelObj) {
       channelObj.messages.fetch().then(messages => {
+        /* messages.forEach(async message => {
+          message.delete();
+        }); */
         const filteredMessages = messages.filter(message => message.createdTimestamp > (Date.now() - 1209600000));
         channelObj.bulkDelete(filteredMessages);
-        channelObj.send({embeds: embeds});
-/*           embeds.forEach(embed => {
-            channelObj.send({embeds: [embed]});
-          }); */
-        console.log(`Les données ont été envoyées dans le channel ${channelName} du serveur ${serverName}`);
+
       });
+      /*  embeds.forEach(embed => {
+        channelObj.send({embeds: [embed]});
+      }); */
+      if(!embeds){
+        console.log("Error, no embeds generated");
+        channelObj.send(`Aucune donnée disponible pour le moment ou limite de requêtes atteinte`);
+        return;
+      }
+      channelObj.send({embeds: embeds});
+      console.log(`Les données ont été envoyées dans le channel ${channelName} du serveur ${serverName}`);
+      return;
     } else {
       console.log(`Le channel ${channelName} du serveur ${serverName} n'existe plus`);
       //remove channel from channelList
