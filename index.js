@@ -56,6 +56,9 @@ client.on('messageCreate', async (message) => {
     case 'watt':
       const data = await MyecoWatt.getEcoWattData();
       const embeds = genEmbed(data);
+      if(!embeds){
+        message.channel.send(`Aucune donnée disponible pour le moment ou limite de requêtes atteinte`);
+      }
       //send all embeds in one message
       message.channel.send({embeds: embeds});
 /*       embeds.forEach(embed => {
@@ -63,52 +66,65 @@ client.on('messageCreate', async (message) => {
       }); */
       break;
     case 'addchannel':
-      if (message.member.permissions.has('ADMINISTRATOR')) {
-        const channel = message.channel;
-        const server = message.guild;
-        const serverid = server.id;
-        const serverName = server.name;
-        const id = channel.id;
-        const name = channel.name;
-        //check if channel already exists
-        const channelExists = channelList.channels.find(channel => channel.id === id);
-        if (channelExists) {
-          message.channel.send(`Le channel ${name} existe déjà dans la liste des channels`);
+      //console.log(message.member.permissions)
+      try{
+        if (message.member.permissions.has('ADMINISTRATOR')) {
+          const channel = message.channel;
+          const server = message.guild;
+          const serverid = server.id;
+          const serverName = server.name;
+          const id = channel.id;
+          const name = channel.name;
+          //check if channel already exists
+          const channelExists = channelList.channels.find(channel => channel.id === id);
+          if (channelExists) {
+            message.channel.send(`Le channel ${name} existe déjà dans la liste des channels`);
+            return;
+          }
+          const newChannel = {
+            "serverid": serverid,
+            "serverName": serverName,
+            "id": id,
+            "name": name
+          };
+          channelList.channels.push(newChannel);
+          fs.writeFile('./channelList.json', JSON.stringify(channelList), (err) => {
+            if (err) throw err;
+            console.log('The file has been saved!');
+          });
+          message.channel.send(`Le channel ${name} a bien été ajouté à la liste des channels`);
           return;
         }
-        const newChannel = {
-          "serverid": serverid,
-          "serverName": serverName,
-          "id": id,
-          "name": name
-        };
-        channelList.channels.push(newChannel);
-        fs.writeFile('./channelList.json', JSON.stringify(channelList), (err) => {
-          if (err) throw err;
-          console.log('The file has been saved!');
-        });
-        message.channel.send(`Le channel ${name} a bien été ajouté à la liste des channels`);
+      }catch(err){
+        console.log(err);
+        message.channel.send(`Vous n'avez pas les droits pour ajouter un channel`);
         return;
       }
       message.channel.send(`Vous n'avez pas les droits pour ajouter un channel`);
       break;
     case 'removechannel':
-      if (message.member.permissions.has('ADMINISTRATOR')) {
-        const channel = message.channel;
-        const id = channel.id;
-        const name = channel.name;
-        //check if channel already exists
-        const channelExists = channelList.channels.find(channel => channel.id === id);
-        if (!channelExists) {
-          message.channel.send(`Le channel ${name} n'existe pas dans la liste des channels`);
+      try{
+        if (message.member.permissions.has('ADMINISTRATOR')) {
+          const channel = message.channel;
+          const id = channel.id;
+          const name = channel.name;
+          //check if channel already exists
+          const channelExists = channelList.channels.find(channel => channel.id === id);
+          if (!channelExists) {
+            message.channel.send(`Le channel ${name} n'existe pas dans la liste des channels`);
+            return;
+          }
+          channelList.channels = channelList.channels.filter(channel => channel.id !== id);
+          fs.writeFile('./channelList.json', JSON.stringify(channelList), (err) => {
+            if (err) throw err;
+            console.log('The file has been saved!');
+          });
+          message.channel.send(`Le channel ${name} a bien été supprimé de la liste des channels`);
           return;
         }
-        channelList.channels = channelList.channels.filter(channel => channel.id !== id);
-        fs.writeFile('./channelList.json', JSON.stringify(channelList), (err) => {
-          if (err) throw err;
-          console.log('The file has been saved!');
-        });
-        message.channel.send(`Le channel ${name} a bien été supprimé de la liste des channels`);
+      }catch(err){
+        console.log(err);
+        message.channel.send(`Vous n'avez pas les droits pour supprimer un channel`);
         return;
       }
       message.channel.send(`Vous n'avez pas les droits pour supprimer un channel`);
@@ -131,6 +147,11 @@ client.on('messageCreate', async (message) => {
 setInterval(async () => {
   let ecoData = await MyecoWatt.getEcoWattData();
   let embeds = genEmbed(ecoData); 
+  if(!embeds){
+    console.log("Error, no embeds generated");
+    message.channel.send(`Aucune donnée disponible pour le moment ou limite de requêtes atteinte`);
+    return;
+  }
 
   channelList.channels.forEach(channel => {
     const channelid = channel.id;
