@@ -155,12 +155,16 @@ setInterval(async () => {
     const serverid = channel.serverid;
     const channelObj = client.channels.cache.get(channelid);
     if (channelObj) {
-      channelObj.messages.fetch().then(messages => {
-        /* messages.forEach(async message => {
-          message.delete();
-        }); */
-        const filteredMessages = messages.filter(message => message.createdTimestamp > (Date.now() - 1209600000));
-        channelObj.bulkDelete(filteredMessages);
+      channelObj.messages.fetch().then(async messages => {
+        await messages.forEach(async message => {
+          try{
+            await message.delete();
+          }catch(err){
+            console.log(err);
+          }
+        });
+        //const filteredMessages = messages.filter(message => message.createdTimestamp > (Date.now() - 1209600000));
+        //channelObj.bulkDelete(filteredMessages);
 
       });
       /*  embeds.forEach(embed => {
